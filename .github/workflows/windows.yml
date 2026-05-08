@@ -344,6 +344,27 @@ jobs:
           key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
           path: ${{ env.CCACHE_DIR }}
 
+      - name: Report tokenizers wheel binary size
+        run: |
+          $wheel = Get-ChildItem -Path "${{ env.WHEELS_DIR }}" -Filter "*.whl" | Select-Object -First 1
+          if (-not $wheel) {
+            Write-Warning "No wheel found"
+            exit 0
+          }
+          $tmp_dir = New-Item -ItemType Directory -Path (Join-Path $env:TEMP "whl_inspect")
+          Expand-Archive -Path $wheel.FullName -DestinationPath $tmp_dir.FullName -Force
+          $binaries = Get-ChildItem -Path $tmp_dir.FullName -Recurse -Filter "openvino_tokenizers.dll"
+          if (-not $binaries) {
+            Write-Warning "No openvino_tokenizers binary found in wheel"
+          } else {
+            foreach ($binary in $binaries) {
+              $mib = [math]::Round($binary.Length / 1MB, 2)
+              Write-Host "Binary: $($binary.FullName)"
+              Write-Host "Size: $($binary.Length) bytes ($mib MiB)"
+            }
+          }
+          Remove-Item -Recurse -Force $tmp_dir.FullName
+
       - name: Upload openvino tokenizers wheel
         if: ${{ always() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
