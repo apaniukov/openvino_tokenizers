@@ -449,7 +449,18 @@ jobs:
             ${tf_tests}/test_tf_StringSplitV2.py \
             ${tf_tests}/test_tf_StringToHashBucketFast.py \
             -n logical -m precommit \
-            --junitxml=${{ env.OPENVINO_REPO }}/TEST-tf-fe.xml
+            --junitxml=${{ env.OPENVINO_REPO }}/TEST-tf_fe.xml
+        env:
+          TEST_DEVICE: CPU
+          TEST_PRECISION: FP16
+
+      - name: TensorFlow 2 tokenizers extension tests
+        run: |
+          tf2_tests=${{ env.OPENVINO_REPO }}/tests/layer_tests/tensorflow2_keras_tests
+          uv run --no-sync pytest \
+            ${tf2_tests}/test_tf2_keras_text_vectorization.py \
+            -n logical -m precommit \
+            --junitxml=${{ env.OPENVINO_REPO }}/TEST-tf2_fe.xml
         env:
           TEST_DEVICE: CPU
           TEST_PRECISION: FP16
